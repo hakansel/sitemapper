@@ -12,6 +12,8 @@ class CrawlerService(object):
     content_queue: set
     parallelism: int
 
+    traced_urls = set()
+
     url_map: dict
 
     def __init__(self, root_url: str) -> None:
@@ -23,6 +25,8 @@ class CrawlerService(object):
         self.fetching_queue = set()
         self.content_queue = set()
         self.parallelism = 25
+
+        self.traced_urls = set()
 
         self.url_map = ({})
 
@@ -38,24 +42,24 @@ class CrawlerService(object):
         print("== Accessible Web Pages ==")
         for _url in self.url_map.keys():
             print("\t" + _url)
-        depth = 0
-        waiting_url = dict()
-        waiting_url[self.root_url] = 0
-        traced_url = set()
-        sitemap = self._trace(self.root_url, depth, waiting_url, traced_url)
         print("\n\n== Web Pages Sitemap ==")
-        print(json.dumps(sitemap, indent=2))
+        urls = [{'url': self.root_url, 'children': []}]
+        self._trace(urls=urls)
+        print(json.dumps(urls[0], indent=2))
 
-    def _trace(self, url, depth, waiting_url, traced_url):
+    def _trace(self, urls: list):
         children = []
-        for _url in self.url_map.get(url, url):
-            if _url not in waiting_url.keys():
-                waiting_url[_url] = waiting_url[url] + 1
-        for _url in self.url_map.get(url, url):
-            if depth < waiting_url[_url] and _url not in traced_url:
-                children.append(self._trace(_url, depth + 1, waiting_url, traced_url))
-                traced_url.add(_url)
-        return {"url": url, "children": children}
+        for url in urls:
+            new_children = []
+            for url_as_str in self.url_map.get(url['url'], url['url']):
+                if url_as_str not in self.traced_urls:
+                    new_children.append({'url': url_as_str, 'children': []})
+                    self.traced_urls.add(url_as_str)
+            url['children'] = new_children
+            if len(url['children']) > 0:
+                children.extend(new_children)
+        if len(children) > 0:
+            self._trace(urls=children)
 
     def _parse_content(self):
         while len(self.url_queue) > 0 or len(self.fetching_queue) > 0 or len(self.content_queue) > 0:
