@@ -16,7 +16,7 @@ docker build -t sitemapper .
 
 ### Run
 
-There is an environment variable _**DEST_URL**_ which is https://www.afiniti.com/ as default value.
+There is an environment variable _**DEST_URL**_ which is http://www.piedpiper.com/ as default value.
 
 ```
 docker run -it sitemapper:latest
@@ -25,5 +25,5 @@ docker run -it sitemapper:latest
 or
 
 ```
-docker run -it -e DEST_URL= https://www.afiniti.com/ sitemapper:latest
+docker run -it -e DEST_URL=http://www.piedpiper.com/ sitemapper:latest
 ```
